@@ -1,0 +1,8 @@
+'Поиск последних заполненных ячеек
+Public Function LastRow(WS As String, Col As Long) As Long 'WS-имя листа, Col-Имя столбца, LastRow-возврааемое значение
+LastRow = ThisWorkbook.Worksheets(WS).Cells(Rows.Count, Col).End(xlUp).Row
+End Function
+'Поиск последних заполненных столбцов
+Public Function LastColumn(WS As String, Row As Long) As Long 'WS-имя листа, Row-имя строки, LastColumn - возвращаемое значение
+LastColumn = ThisWorkbook.Worksheets(WS).Cells(Row, Columns.Count).End(xlToLeft).Column
+End Function
