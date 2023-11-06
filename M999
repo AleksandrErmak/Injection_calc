@@ -1,0 +1,29 @@
+Sub Clear_range()
+    Dim WS As String
+    WS = "Приемистость"
+    Set WSI = ThisWorkbook.Worksheets(WS)
+    
+    Dim WSObject As String
+    WSObject = "Объект подготовки"
+    Set WSO = ThisWorkbook.Worksheets(WSObject)
+    
+    Dim WSSource As String
+    WSSource = "Источник воды"
+    Set WSS = ThisWorkbook.Worksheets(WSSource)
+    
+    Dim WSInjMon As String
+    WSInjMon = "Расчет закачки"
+    Set WSIM = ThisWorkbook.Worksheets(WSInjMon)
+    
+    WSI.Range("F2:BM20").ClearContents
+    WSI.Range("D6:D8").ClearContents
+    WSI.Range("D6:D8").ClearContents
+    WSI.Range("D10:D20").ClearContents
+    WSO.Range("F2:BM20").ClearContents
+    WSS.Range("F2:BM20").ClearContents
+    WSIM.Range("F2:BM20").ClearContents
+    WSIM.Range("D6:D8").ClearContents
+    WSIM.Range("D6:D8").ClearContents
+    WSIM.Range("D10:D20").ClearContents
+End Sub
+
