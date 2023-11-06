@@ -1,0 +1,102 @@
+Option Explicit
+Private WSI As Worksheet
+Private WSP As Worksheet
+Private WSO As Worksheet
+Private WSC As Worksheet
+Private WSS As Worksheet
+Private WSCS As Worksheet
+Private WSIM As Worksheet
+
+Sub MainProg()
+    
+    'Обявление переменных
+    
+    Dim WS As String
+    WS = "Приемистость"
+    Set WSI = ThisWorkbook.Worksheets(WS)
+    
+    Dim WSPipe As String
+    WSPipe = "Водоводы"
+    Set WSP = ThisWorkbook.Worksheets(WSPipe)
+    
+    Dim WSObject As String
+    WSObject = "Объект подготовки"
+    Set WSO = ThisWorkbook.Worksheets(WSObject)
+    
+    Dim WSConnect As String
+    WSConnect = "Привязка кустов"
+    Set WSC = ThisWorkbook.Worksheets(WSConnect)
+    
+    Dim WSSource As String
+    WSSource = "Источник воды"
+    Set WSS = ThisWorkbook.Worksheets(WSSource)
+    
+    Dim WSConSource As String
+    WSConSource = "Привязка источника"
+    Set WSCS = ThisWorkbook.Worksheets(WSConSource)
+    
+    Dim WSInjMon As String
+    WSInjMon = "Расчет закачки"
+    Set WSIM = ThisWorkbook.Worksheets(WSInjMon)
+    
+    Dim Row As Long
+    Dim Col As Long
+    Dim LRow As Long
+    Dim LColumn As Long
+    
+    Dim well As Integer
+    Dim dat As Integer
+    Dim rowcluster As Integer
+    
+    '---------------------массив скважин---------------------------------'
+    
+    Dim DynArrayWell()
+    Call Module3.ArWell(WS, 2, 1, DynArrayWell())
+    
+    '---------------------массив дат---------------------------------'
+    
+    Dim DynArrayDate()
+    Call Module3.ArDate(WS, 1, 6, DynArrayDate())
+    
+    '---------------------массив дат готовнности водоводов---------------------------------'
+    
+    Dim rangeToSearchDataPipe As Range
+    Call Module3.ArPipe(WSPipe, 2, 1, rangeToSearchDataPipe)
+    
+    '---------------------массив дат подключения КП к объектам---------------------------------'
+    '----------------------------------------------------------------------'
+    Dim rowobject_1 As Integer
+    Dim rowobject_2 As Integer
+    
+    Dim rangeToSearchObject As Range
+    Call Module3.ArObj(WSObject, 2, 1, rangeToSearchObject)
+    
+    Dim rangeToSearchDatAndObjCon As Range
+    Call Module3.ArCon(WSConnect, 2, 1, rangeToSearchDatAndObjCon)
+    '---------- массив источников воды-------------'
+    Dim DynArraySource()
+    Call Module3.ArSource(WSSource, 2, 1, DynArraySource())
+    
+    '---------поиск привязки источника----------'
+    
+    Dim rangeToSearchDatAndSourceCon As Range
+    Call Module3.ArConSource(WSConSource, 2, 1, rangeToSearchDatAndSourceCon)
+    
+       
+    '---------------------цикл приемистости--------------------------------'
+    
+    For well = LBound(DynArrayWell) To UBound(DynArrayWell) 'Для кждой скважины
+        If IsEmpty(WSI.Cells(well, 4)) = False Then 'если дата перевода указана
+            Call Module4.ingection_by_date(WSI, WSC, WSO, WSS, WSCS, well, DynArrayDate(), DynArraySource(), rangeToSearchDatAndSourceCon, rangeToSearchDatAndObjCon, rangeToSearchObject)
+        End If
+    Next
+   
+    For well = LBound(DynArrayWell) To UBound(DynArrayWell) 'Для кждой скважины
+        If IsEmpty(WSI.Cells(well, 4)) = True Then 'если дата перевода не указана
+            Call Module1.injection_date_substitution(WSI, WSP, rangeToSearchDataPipe, well, LBound(DynArrayDate))
+            Call Module4.ingection_by_date(WSI, WSC, WSO, WSS, WSCS, well, DynArrayDate(), DynArraySource(), rangeToSearchDatAndSourceCon, rangeToSearchDatAndObjCon, rangeToSearchObject)
+        End If
+    Next
+    Call Module2.injection_month(WSIM, WSI, DynArrayWell(), DynArrayDate())
+End Sub
+
