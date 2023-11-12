@@ -1,0 +1,13 @@
+Sub ingection_by_date()
+    rowcluster = rangeToSearchDatAndObjCon.Find(WSI.Cells(well, 2).Value, , xlValues, xlWhole, xlByColumns).Row 'найти куст на листе привязки кустов
+    rowobject_1 = rangeToSearchObject.Find(WSC.Cells(rowcluster, 2).Value, , xlValues, xlWhole, xlByColumns).Row 'найти первый объъеккт к которому привязывается куст
+    rowobject_2 = rangeToSearchObject.Find(WSC.Cells(rowcluster, 4).Value, , xlValues, xlWhole, xlByColumns).Row 'найти второй объъеккт к которому привязывается куст
+    If WSI.Cells(well, 4) < WSI.Cells(1, dat + 1) Or IsEmpty(WSI.Cells(1, dat + 1)) = True Then 'Приемистость проставляется с месяца в котором скважина запустилась под закачку
+        Call Module4.injection_range_substitution
+        If WSC.Cells(rowcluster, 5) < WSO.Cells(1, dat + 1) Or IsEmpty(WSO.Cells(1, dat + 1)) = True Then
+            Call Module4.Check_Sum_by_object(rowobject_2)
+        ElseIf WSC.Cells(rowcluster, 3) < WSO.Cells(1, dat + 1) Or IsEmpty(WSO.Cells(1, dat + 1)) = True Then
+            Call Module4.Check_Sum_by_object(rowobject_1)
+        End If
+    End If
+End Sub
