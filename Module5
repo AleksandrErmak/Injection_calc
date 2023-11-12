@@ -1,0 +1,18 @@
+Sub injection_month()
+    For well = LBound(DynArrayWell) To UBound(DynArrayWell)
+        For dat = LBound(DynArrayDate) To UBound(DynArrayDate)
+            WSIM.Cells(well, 4) = WSI.Cells(well, 4)
+            If WSIM.Cells(well, 4) >= WSIM.Cells(1, dat) And WSIM.Cells(well, 4) < WSIM.Cells(1, dat + 1) = True Then
+                WSIM.Cells(well, dat) = WSI.Cells(well, dat) * (WSIM.Cells(1, dat + 1) - WSIM.Cells(well, 4))
+            ElseIf WSIM.Cells(well, 4) < WSIM.Cells(1, dat) = True Then
+                If IsEmpty(WSIM.Cells(1, dat + 1)) = True Then
+                    WSIM.Cells(well, dat) = WSI.Cells(well, dat) * 31
+                ElseIf IsEmpty(WSIM.Cells(1, dat + 1)) = False Then
+                    WSIM.Cells(well, dat) = WSI.Cells(well, dat) * (WSIM.Cells(1, dat + 1) - WSIM.Cells(1, dat))
+                End If
+            End If
+        Next
+    Next
+End Sub
+
+
