@@ -1,0 +1,31 @@
+'Поиск последних заполненных ячеек
+Public Function LastRow(WS As String, Col As Long) As Long 'WS-имя листа, Col-Имя столбца, LastRow-возврааемое значение
+LastRow = ThisWorkbook.Worksheets(WS).Cells(Rows.Count, Col).End(xlUp).Row
+End Function
+'Поиск последних заполненных столбцов
+Public Function LastColumn(WS As String, Row As Long) As Long 'WS-имя листа, Row-имя строки, LastColumn - возвращаемое значение
+LastColumn = ThisWorkbook.Worksheets(WS).Cells(Row, Columns.Count).End(xlToLeft).Column
+End Function
+'Создание авто-диапазона данных
+Sub AutoRange(ByVal WS As String, ByVal Row As Long, ByVal Col As Long, ByVal by_column As Boolean, ByRef NameRange())
+    Dim LB As Long 'Нижняя граница изменяющегося массива
+    Dim UB As Long 'Верхняя граница изменяющегося массива
+    If by_column = True Then 'по колонке
+        LB = Row
+        UB = Module0.LastRow(WS, Col)
+    ElseIf by_column = False Then 'по строке
+        LB = Col
+        UB = Module0.LastColumn(WS, Row)
+    End If
+    ReDim NameRange(LB To UB) 'перезаписываем значения массива
+End Sub
+'Создание авто-диапазона ячеек для поиска данных
+Sub AutoRangeToSearch(ByVal WS As String, ByVal Row As Long, ByVal Col As Long, ByVal by_column As Boolean, ByRef Name_RangeToSearch As Range)
+    If by_column = True Then 'по колонке
+        Set Name_RangeToSearch = ThisWorkbook.Worksheets(WS).Range(Cells(Row, Col).Address(), Cells(Module0.LastRow(WS, Col), Col).Address())
+    ElseIf by_column = False Then 'по строке
+        Set Name_RangeToSearch = ThisWorkbook.Worksheets(WS).Range(Cells(Row, Col).Address(), Cells(Row, Module0.LastColumn(WS, Row)).Address())
+    End If
+End Sub
+
+
