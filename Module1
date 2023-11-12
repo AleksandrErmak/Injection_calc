@@ -1,0 +1,99 @@
+Option Explicit
+
+'Обявление переменных
+
+Public WSI As Worksheet
+Public WSP As Worksheet
+Public WSO As Worksheet
+Public WSC As Worksheet
+Public WSS As Worksheet
+Public WSCS As Worksheet
+Public WSIM As Worksheet
+
+Public WS As String
+Public WSPipe As String
+Public WSObject As String
+Public WSConnect As String
+Public WSSource As String
+Public WSConSource As String
+Public WSInjMon As String
+
+Public well As Integer
+Public dat As Integer
+Public rowcluster As Integer
+Public rowobject_1 As Integer
+Public rowobject_2 As Integer
+
+Public DynArrayWell()
+Public DynArrayDate()
+Public DynArraySource()
+Public DynArrayWellwithEmptyDate() As Integer
+
+Public rangeToSearchDataPipe As Range
+Public rangeToSearchObject As Range
+Public rangeToSearchDatAndObjCon As Range
+Public rangeToSearchDatAndSourceCon As Range
+Sub MainProg()
+
+    WS = "Приемистость"
+    WSPipe = "Водоводы"
+    WSObject = "Объект подготовки"
+    WSConnect = "Привязка кустов"
+    WSSource = "Источник воды"
+    WSConSource = "Привязка источника"
+    WSInjMon = "Расчет закачки"
+    
+    Set WSI = ThisWorkbook.Worksheets(WS)
+    Set WSP = ThisWorkbook.Worksheets(WSPipe)
+    Set WSO = ThisWorkbook.Worksheets(WSObject)
+    Set WSC = ThisWorkbook.Worksheets(WSConnect)
+    Set WSS = ThisWorkbook.Worksheets(WSSource)
+    Set WSCS = ThisWorkbook.Worksheets(WSConSource)
+    Set WSIM = ThisWorkbook.Worksheets(WSInjMon)
+    
+    Call Module0.AutoRange(WS, 2, 1, True, DynArrayWell()) 'массив скважин
+    Call Module0.AutoRange(WS, 1, 6, False, DynArrayDate()) 'массив дат
+    Call Module0.AutoRangeToSearch(WSPipe, 2, 1, True, rangeToSearchDataPipe) 'массив дат готовнности водоводов
+    Call Module0.AutoRangeToSearch(WSObject, 2, 1, True, rangeToSearchObject) 'массив объектов
+    Call Module0.AutoRangeToSearch(WSConnect, 2, 1, True, rangeToSearchDatAndObjCon) 'массив дат подключения КП к объектам
+    Call Module0.AutoRange(WSSource, 2, 1, True, DynArraySource()) 'массив источников воды
+    Call Module0.AutoRangeToSearch(WSConSource, 2, 1, True, rangeToSearchDatAndSourceCon) 'поиск привязки источника
+    
+    
+    For dat = LBound(DynArrayDate) To UBound(DynArrayDate) 'Для каждой даты
+        For well = LBound(DynArrayWell) To UBound(DynArrayWell) 'Для кждой скважины
+            If IsEmpty(WSI.Cells(well, 4)) = False Then 'если дата перевода указана
+                Call Module3.ingection_by_date
+            End If
+        Next
+    Next
+    
+    Dim i As Integer
+    i = 1
+    For well = LBound(DynArrayWell) To UBound(DynArrayWell) 'Для кждой скважины
+        If IsEmpty(WSI.Cells(well, 4)) = True Then 'если дата перевода не указана
+            If i = 1 = True Then
+                ReDim DynArrayWellwithEmptyDate(0)
+                DynArrayWellwithEmptyDate(0) = well
+            ElseIf i > 1 = True Then
+                ReDim Preserve DynArrayWellwithEmptyDate(UBound(DynArrayWellwithEmptyDate) + 1)
+                DynArrayWellwithEmptyDate(UBound(DynArrayWellwithEmptyDate)) = well
+            
+            End If
+            i = i + 1
+            Call Module2.injection_date_substitution
+        End If
+    Next
+    
+    Dim element As Variant
+    For dat = LBound(DynArrayDate) To UBound(DynArrayDate) 'Для каждой даты
+        For Each element In DynArrayWellwithEmptyDate 'Для кждой скважины с ранее пустой датой
+            well = CInt(element)
+            Call Module3.ingection_by_date
+        Next
+    Next
+    
+    Call Module5.injection_month
+    MsgBox ("Finish")
+End Sub
+
