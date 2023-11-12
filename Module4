@@ -1,0 +1,106 @@
+Sub injection_range_substitution()
+    If IsEmpty(WSI.Cells(well, dat - 1)) = True Then
+        'Если скважина только перевелась то стартовая приемистость 120м3
+        WSI.Cells(well, dat) = 120
+    ElseIf WSI.Cells(well, dat - 1) <= 150 Then
+        'Если Приемистость в предыдущем месяце была ниже 150м3, то снижаем приемистость в текущем месяце на 0,5%
+        WSI.Cells(well, dat) = WSI.Cells(well, dat - 1) * 0.995
+    ElseIf WSI.Cells(well, dat - 1) > 150 Then
+        'Если Приемистость в предыдущем месяце была выше 150м3, то снижаем приемистость в текущем месяце на 20%
+        WSI.Cells(well, dat) = WSI.Cells(well, dat - 1) * 0.8
+    End If
+End Sub
+Sub Check_Sum_by_object(ByVal rowobject As Integer)
+    If WSO.Cells(rowobject, 2) < WSO.Cells(1, dat + 1) Or IsEmpty(WSO.Cells(1, dat + 1)) = True Then 'если тек. дата позже чем дата ввода объекта
+        If WSO.Cells(rowobject, dat) + WSI.Cells(well, dat) <= WSO.Cells(rowobject, 3) = True Then ' если лимит больше чем сумма закачки + планируемая приемистость
+            WSO.Cells(rowobject, dat) = WSO.Cells(rowobject, dat) + WSI.Cells(well, dat) ' тогда сумма закачки + планируемая приемистость
+        ElseIf WSO.Cells(rowobject, dat) + WSI.Cells(well, dat) >= WSO.Cells(rowobject, 3) + 40 = False Then 'если превыение меньше 40
+            Dim d As Long
+            d = WSO.Cells(rowobject, dat) + WSI.Cells(well, dat) - WSO.Cells(rowobject, 3)
+            WSO.Cells(rowobject, dat) = WSO.Cells(rowobject, 3) ' ставим лимит
+            WSI.Cells(well, dat) = WSI.Cells(well, dat) - d
+        ElseIf WSO.Cells(rowobject, dat) + WSI.Cells(well, dat) > WSO.Cells(rowobject, 3) + 40 = True Then 'если превышение больше 40
+            WSI.Cells(well, dat).ClearContents
+            WSI.Cells(well, 4) = WSI.Cells(well, 4) + 32 'меняем дату запуска на следующий месяц
+        End If
+        Call Module4.Check_Sum_by_source(rowobject)
+    End If
+End Sub
+Sub Check_Sum_by_source(ByVal rowobject As Integer)
+    Dim rest As Long
+    rest = WSO.Cells(rowobject, dat)
+    For Source = LBound(DynArraySource) To UBound(DynArraySource)
+        
+        Dim sour As Integer
+        sour = rangeToSearchDatAndSourceCon.Find(WSS.Cells(Source, 1).Value, , xlValues, xlWhole, xlByColumns).Row 'найти источник на листе привязки источников
+        sour_object_1 = WSCS.Cells(sour, 2) 'найти первый объъеккт к которому привязывается источник
+        sour_object_2 = WSCS.Cells(sour, 4) 'найти второй объъеккт к которому привязывается источник
+        dat_sour_object_1 = WSCS.Cells(sour, 3) 'найти дату первый объъеккт к которому привязывается источник
+        dat_sour_object_2 = WSCS.Cells(sour, 5) 'найти дату первый объъеккт к которому привязывается источник
+
+        If WSO.Cells(1, dat) >= dat_sour_object_2 = True Then '2 объект
+            If WSO.Cells(rowobject, 1) = sour_object_2 = True Then
+                Call Module4.rest_cal(rowobject, rest, Source, dat_sour_object_2, sour_object_2)
+            End If
+        ElseIf WSO.Cells(1, dat) < dat_sour_object_2 And WSO.Cells(1, dat) >= dat_sour_object_1 = True Then '1 обект
+            If WSO.Cells(rowobject, 1) = sour_object_1 = True Then
+                Call Module4.rest_cal(rowobject, rest, Source, dat_sour_object_1, sour_object_1)
+            End If
+        End If
+'        If rest <= 0 = True Then
+'            Exit For
+'        End If
+    Next
+    If rest > 0 = True Then
+        WSO.Cells(rowobject, dat) = WSO.Cells(rowobject, dat) - rest
+        WSI.Cells(well, dat) = WSI.Cells(well, dat) - rest
+        If WSI.Cells(well, dat) < 80 = True Then
+            WSO.Cells(rowobject, dat) = WSO.Cells(rowobject, dat) - WSI.Cells(well, dat)
+            WSI.Cells(well, dat).ClearContents
+            WSI.Cells(well, 4) = WSI.Cells(well, 4) + 32 'меняем дату запуска на следующий месяц
+        End If
+    End If
+End Sub
+Sub rest_cal(ByVal rowobject As Integer, ByRef rest As Long, ByVal Source As Integer, ByVal dat_sour_object As Date, ByVal sour_object As String)
+    If WSS.Cells(Source, 3) >= rest = True Then
+        Dim s As Integer
+        Dim balance As Long
+        Dim other_balance As Long
+        balance = WSS.Cells(Source, 3) - WSS.Cells(Source, dat - 1)
+        other_balance = 0
+        
+        For s = (LBound(DynArraySource) + (Source - 1)) To UBound(DynArraySource)
+        
+            Dim so As Integer
+            so = rangeToSearchDatAndSourceCon.Find(WSS.Cells(s, 1).Value, , xlValues, xlWhole, xlByColumns).Row 'найти источник на листе привязки источников
+            so_object_1 = WSCS.Cells(so, 2) 'найти первый объъеккт к которому привязывается источник
+            so_object_2 = WSCS.Cells(so, 4) 'найти второй объъеккт к которому привязывается источник
+            dat_so_object_1 = WSCS.Cells(so, 3) 'найти дату первый объъеккт к которому привязывается источник
+            dat_so_object_2 = WSCS.Cells(so, 5) 'найти дату первый объъеккт к которому привязывается источник
+            
+            If WSS.Cells(1, dat) >= dat_so_object_2 = True Then '2 объект
+                If sour_object = so_object_2 = True Then
+                    other_balance = other_balance + (WSS.Cells(s, 3) - WSS.Cells(s, dat - 1))
+                End If
+            ElseIf WSS.Cells(1, dat) < dat_so_object_2 And WSS.Cells(1, dat) >= dat_so_object_1 = True Then '1 обект
+                If sour_object = so_object_1 = True Then
+                    other_balance = other_balance + (WSS.Cells(s, 3) - WSS.Cells(s, dat - 1))
+                End If
+            End If
+        
+'            If WSS.Cells(1, dat) >= dat_sour_object = True Then
+'                If WSS.Cells(rowobject, 1) = sour_object = True Then
+'                    other_balance = other_balance + (WSS.Cells(s, 3) - WSS.Cells(s, dat - 1))
+'                End If
+'            End If
+        Next
+        
+        WSS.Cells(Source, dat) = rest * (balance / (balance + other_balance))
+        rest = rest - WSS.Cells(Source, dat)
+        'WSS.Cells(Source, dat) = rest
+        'rest = 0
+    ElseIf WSS.Cells(Source, 3) < rest = True Then
+        WSS.Cells(Source, dat) = WSS.Cells(Source, 3)
+        rest = rest - WSS.Cells(Source, dat)
+    End If
+End Sub
