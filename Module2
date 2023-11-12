@@ -1,0 +1,17 @@
+Sub injection_date_substitution()
+    Dim rowcluster As Integer
+    rowcluster = rangeToSearchDataPipe.Find(WSI.Cells(well, 2).Value, , xlValues, xlWhole, xlByColumns).Row 'найти дату подключения куста к водоводу
+    If WSI.Cells(well, 3) + 180 > WSP.Cells(rowcluster, 2) Then 'если дата ВНС+180суток позже чем дата подключения куста к водоводу
+        WSI.Cells(well, 4) = WSI.Cells(well, 3) + 180 'проставить дату перевода ВНС+180суток
+    ElseIf WSI.Cells(well, 3) + 180 <= WSP.Cells(rowcluster, 2) Then 'если дата ВНС+180суток раньше чем дата подключения куста к водоводу
+        If WSI.Cells(well, 2) = WSI.Cells(well - 1, 2) Then 'Если куст равен предыдущему кусту
+            If WSI.Cells(well - 1, 4) + 5 >= LBound(DynArrayDate) Then 'Если перевод предыдущей скважины позже чем начало планируемого периода
+                WSI.Cells(well, 4) = WSI.Cells(well - 1, 4) + 5 'проставить дату перевода скважины через 5 дней после перевода предыдущей
+            ElseIf WSI.Cells(well - 1, 4) + 5 < LBound(DynArrayDate) Then 'Если перевод предыдущей скважины раньше чем начало планируемого периода
+                WSI.Cells(well, 4) = LBound(DynArrayDate) + 5 'проставить дату перевода скважины через 5 дней после начало планируемого периода
+            End If
+        ElseIf WSI.Cells(well, 2) <> WSI.Cells(well - 1, 2) Then 'Если куст не равен предыдущему кусту
+            WSI.Cells(well, 4) = WSP.Cells(rowcluster, 2) 'проставиить дату перевода по дате подключения куста к водоводу
+        End If
+    End If
+End Sub
